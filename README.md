@@ -15,7 +15,7 @@ adding them to the configuration file. The MintCoin block explorer has
 a list of active nodes to seed with.
 
 The other way is to use the DNS. The wallet looks up a domain name,
-and any addresses returned will be attmpted.
+and any addresses returned will be attempted.
 
 The DNS method is clean and should be fast, but we need DNS servers
 that hold the correct information. That is what this repository
@@ -97,4 +97,103 @@ rpcpassword=somereallylongandhardtoguesspassword
 
 # Running the Update Script
 
-...
+The update script will connect to the running `mintcoind`, get the
+list of peers, and use DDNS to push the changes to the DNS.
+
+A typical execution might look like this:
+
+```
+$ python3 MintCoinPeer2DNS.py -m /opt/mintcoin/bin/mintcoind -k Kmintysig.+165+59162.key -z vanaheimr.cf mintseed.vanaheimr.cf
+```
+
+The `-m` option is the location of `mintcoind`. If it is in your
+`PATH` then it is not necessary. The `-k` option is the name of the
+key file created with `dnssec-keygen` previously and added to your
+BIND configuration. The `-z` option is the name of the zone, which
+`nsupdate` will use to try to figure out the correct server to connect
+to (it is optional). And finally you have the actual DNS name to
+update.
+
+You can use the `-h` option to get the full syntax:
+
+```
+$ python3 MintCoinPeer2DNS.py -h
+usage: MintCoinPeer2DNS.py [-h] [--mintcoind MINTCOIND] [--nsupdate
+NSUPDATE]
+                           --keyfile KEYFILE [--zone ZONE]
+                           domain
+
+Put MintCoin nodes into DNS.
+
+positional arguments:
+  domain                Domain name to update.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --mintcoind MINTCOIND, -m MINTCOIND
+                        Location of the mintcoind executable.
+  --nsupdate NSUPDATE, -n NSUPDATE
+                        Location of the nsupdate executable.
+  --keyfile KEYFILE, -k KEYFILE
+                        File containing the TSIG authentication key.
+  --zone ZONE, -z ZONE  Zone to update (optional).
+```
+
+# Automate Running
+
+Typically you will want to run the update script periodically. You can
+use `cron` for this, which you update with `crontab -e`:
+
+```
+# Update the DNS with MintCoin peers every minute.
+* * * * * python3 ~/MintCoin-DNS-lookup-server/MintCoinPeer2DNS.py -m /opt/mintcoin/bin/mintcoind -k Kmintysig.+165+59162.key -z vanaheimr.cf mintseed.vanaheimr.cf
+```
+
+# Manual Lookups
+
+You can query the DNS manually by using the `host` command, something
+like this:
+
+```
+$ host -t any mintseed.vanaheimr.cf | sort
+mintseed.vanaheimr.cf descriptive text "[2601:441:8700:4660:2940:41c6:30e:698e]:55528"
+mintseed.vanaheimr.cf has address 107.4.242.195
+mintseed.vanaheimr.cf has address 144.76.237.39
+mintseed.vanaheimr.cf has address 188.40.131.43
+mintseed.vanaheimr.cf has address 212.26.191.22
+mintseed.vanaheimr.cf has address 46.4.113.143
+mintseed.vanaheimr.cf has address 50.53.100.217
+mintseed.vanaheimr.cf has address 73.5.13.195
+mintseed.vanaheimr.cf has address 79.124.7.89
+mintseed.vanaheimr.cf has address 87.226.38.178
+mintseed.vanaheimr.cf has IPv6 address 2001:470:78c8:2:a00:27ff:fe6a:7c68
+mintseed.vanaheimr.cf has IPv6 address 2a02:1205:34e4:9880:257e:79c8:7d33:d8bf
+mintseed.vanaheimr.cf has IPv6 address 2a03:f680:fe03:1577:20c:29ff:fe59:3ec2
+```
+
+If you prefer, you can also use the `dig` command (preferred by 4 out
+of 5 DNS professionals), something like this:
+
+```
+$ dig +noall +answer  -t any mintseed.vanaheimr.cf  | sort
+mintseed.vanaheimr.cf.	57	IN	A	107.4.242.195
+mintseed.vanaheimr.cf.	57	IN	A	144.76.237.39
+mintseed.vanaheimr.cf.	57	IN	A	188.40.131.43
+mintseed.vanaheimr.cf.	57	IN	A	212.26.191.22
+mintseed.vanaheimr.cf.	57	IN	A	46.4.113.143
+mintseed.vanaheimr.cf.	57	IN	A	50.53.100.217
+mintseed.vanaheimr.cf.	57	IN	A	73.5.13.195
+mintseed.vanaheimr.cf.	57	IN	A	79.124.7.89
+mintseed.vanaheimr.cf.	57	IN	A	87.226.38.178
+mintseed.vanaheimr.cf.	57	IN	AAAA	2001:470:78c8:2:a00:27ff:fe6a:7c68
+mintseed.vanaheimr.cf.	57	IN	AAAA	2a02:1205:34e4:9880:257e:79c8:7d33:d8bf
+mintseed.vanaheimr.cf.	57	IN	AAAA	2a03:f680:fe03:1577:20c:29ff:fe59:3ec2
+mintseed.vanaheimr.cf.	57	IN	TXT	"[2601:441:8700:4660:2940:41c6:30e:698e]:55528"
+```
+
+# Integration into the MintCoin Wallet
+
+To add your server into the MintCoin wallet, you can either issue a
+pull request on GitHub (you probably only need to add yourself to the
+list of servers in the `strDNSSeed[]` array), or you can contact the
+developers and ask them to add your server.
