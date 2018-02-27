@@ -34,7 +34,7 @@ be allowed over the network, TSIG is recommended.
 On a Debian or Ubuntu system you can install the needed packages:
 
 ```
-$ sudo apt install bind9 bind9utils
+$ sudo apt install bind9 bind9utils dnsutils
 ```
 
 You can then create a TSIG key:
