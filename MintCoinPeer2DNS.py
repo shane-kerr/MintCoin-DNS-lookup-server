@@ -17,8 +17,7 @@ MINTCOIN_EXE = 'mintcoind'
 NSUPDATE_EXE = 'nsupdate'
 
 
-def update_domain(nsupdate_args, domain,
-                  ipv4_peers, ipv6_peers, txt_peers, zone):
+def update_domain(nsupdate_args, domain, ipv4_peers, ipv6_peers, zone):
     """
     Invoke the nsupdate program and use it to send a DDNS message
     to the server with the zone.
@@ -39,10 +38,6 @@ def update_domain(nsupdate_args, domain,
         for ipv6_peer in ipv6_peers:
             proc.stdin.write('add ' + domain +
                              ' 60 IN AAAA ' + ipv6_peer + '\n')
-        # Add any peers not on the standard port as TXT records.
-        for txt_peer in txt_peers:
-            proc.stdin.write('add ' + domain +
-                             ' 60 IN TXT ' + txt_peer + '\n')
         # Finally send our update command, which will execute all
         # of the changes atomically on the DNS server.
         proc.stdin.write('send\n')
@@ -78,27 +73,19 @@ def main(args):
 
     # We separate out the IPv4 and IPv6 addresses, since these will become
     # the A and AAAA records, respectively.
-    #
-    # We also grab any hosts that we are connected to at ports other than
-    # the standard ones and stick those in TXT records, since we don't
-    # have a RTYPE that is a good match for that information otherwise.
     ipv4_peers = []
     ipv6_peers = []
-    txt_peers = []
     for peer in peers:
         if peer['addr'].endswith(':12788'):
             if peer['addr'][0] == '[':
                 ipv6_peers.append(peer['addr'][1:-7])
             else:
                 ipv4_peers.append(peer['addr'][:-6])
-        else:
-            txt_peers.append(peer['addr'])
 
     # We don't really need to sort these since DNS is unordered,
     # but it makes debugging easier.
     ipv4_peers.sort()
     ipv6_peers.sort()
-    txt_peers.sort()
 
     # Update the zone.
     if args.nsupdate:
@@ -107,7 +94,7 @@ def main(args):
         nsupdate_cmd = NSUPDATE_EXE
     nsupdate_args = [nsupdate_cmd, "-k", args.keyfile]
     update_domain(nsupdate_args, args.domain,
-                  ipv4_peers, ipv6_peers, txt_peers, args.zone)
+                  ipv4_peers, ipv6_peers, args.zone)
 
 
 if __name__ == '__main__':
