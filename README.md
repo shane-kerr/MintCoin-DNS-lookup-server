@@ -145,8 +145,8 @@ Typically you will want to run the update script periodically. You can
 use `cron` for this, which you update with `crontab -e`:
 
 ```
-# Update the DNS with MintCoin peers every minute.
-* * * * * python3 ~/MintCoin-DNS-lookup-server/MintCoinPeer2DNS.py -m /opt/mintcoin/bin/mintcoind -k Kmintysig.+165+59162.key -z vanaheimr.cf mintseed.vanaheimr.cf
+# Update the DNS with MintCoin peers every five minutes.
+*/5 * * * * python3 ~/MintCoin-DNS-lookup-server/MintCoinPeer2DNS.py -m /opt/mintcoin/bin/mintcoind -k Kmintysig.+165+59162.key -z vanaheimr.cf mintseed.vanaheimr.cf
 ```
 
 # Manual Lookups
