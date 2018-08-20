@@ -83,13 +83,14 @@ You need to set up the MintCoin wallet and run it. This is where we
 will get peers to add to our DNS zone. You do _not_ need to have any
 MintCoins in the wallet - and in fact probably you should not.
 
-What you do want to have is a lot of peers, so your `MintCoin.conf`
-should look something like this: 
+What you do want to have is a lot of peers, but you do not need any
+peers that connect to you as we only want peers on the MintCoin port.
+Your `MintCoin.conf` should look something like this:
 
 ```
 testnet=0
 maxconnections=101
-listen=1
+listen=0
 
 rpcuser=mintcoinrpc
 rpcpassword=somereallylongandhardtoguesspassword
