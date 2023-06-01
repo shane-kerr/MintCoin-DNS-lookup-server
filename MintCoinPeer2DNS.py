@@ -10,6 +10,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 
 
 # Some default names for our executables
@@ -38,6 +39,10 @@ def update_domain(nsupdate_args, domain, ipv4_peers, ipv6_peers, zone):
         for ipv6_peer in ipv6_peers:
             proc.stdin.write('add ' + domain +
                              ' 60 IN AAAA ' + ipv6_peer + '\n')
+        # Add a timestamp as a TXT record.
+        timestamp = time.strftime('updated at %Y-%m-%d %H:%M:%S UTC',
+                                  time.gmtime())
+        proc.stdin.write(f'add {domain} 60 IN TXT "{timestamp}"\n')
         # Finally send our update command, which will execute all
         # of the changes atomically on the DNS server.
         proc.stdin.write('send\n')
@@ -57,6 +62,8 @@ def main(args):
                         help='File containing the TSIG authentication key.')
     parser.add_argument('--zone', '-z',
                         help='Zone to update (optional).')
+    parser.add_argument('--verbose', '-v', action='count', default=0,
+                        help='Verbose mode')
     parser.add_argument('domain',
                         help='Domain name to update.')
     args = parser.parse_args()
@@ -86,6 +93,9 @@ def main(args):
     # but it makes debugging easier.
     ipv4_peers.sort()
     ipv6_peers.sort()
+    if args.verbose:
+        print("IPv4 peers:", ','.join(ipv4_peers))
+        print("IPv6 peers:", ','.join(ipv6_peers))
 
     # Update the zone.
     if args.nsupdate:
